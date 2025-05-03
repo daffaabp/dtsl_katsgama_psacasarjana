@@ -44,25 +44,25 @@ class AlumniModel extends Model
             ->select(
                 '
             data_alumni.id,
-            data_alumni.nama,
-            data_alumni.email,
-            data_alumni.nowa,
-            data_alumni.notelp,
-            data_alumni.alamat,
-            data_alumni.prop_id,
-            data_alumni.jabatan,
-            data_alumni.instansi,
-            data_alumni.occupation_id,
-            data_alumni.photo,
+            MAX(data_alumni.nama) as nama,
+            MAX(data_alumni.email) as email,
+            MAX(data_alumni.nowa) as nowa,
+            MAX(data_alumni.notelp) as notelp,
+            MAX(data_alumni.alamat) as alamat,
+            MAX(data_alumni.prop_id) as prop_id,
+            MAX(data_alumni.jabatan) as jabatan,
+            MAX(data_alumni.instansi) as instansi,
+            MAX(data_alumni.occupation_id) as occupation_id,
+            MAX(data_alumni.photo) as photo,
 
-            akademik.jenjang,
-            akademik.universitas,
-            akademik.departemen,
-            akademik.tmasuk,
-            akademik.tlulus,
-            propinsi.id AS propinsi_id,
-            propinsi.nama AS propinsi,
-            occupations.name AS occupation'
+            MAX(akademik.jenjang) as jenjang,
+            MAX(akademik.universitas) as universitas,
+            MAX(akademik.departemen) as departemen,
+            MAX(akademik.tmasuk) as tmasuk,
+            MAX(akademik.tlulus) as tlulus,
+            MAX(propinsi.id) AS propinsi_id,
+            MAX(propinsi.nama) AS propinsi,
+            MAX(occupations.name) AS occupation'
             )
             ->join('akademik', 'data_alumni.id = akademik.idorg', 'left')
             ->join('occupations', 'data_alumni.occupation_id = occupations.id', 'left')
@@ -119,17 +119,17 @@ class AlumniModel extends Model
             ->select(
                 '
             data_alumni.id,
-            data_alumni.nama,
-            data_alumni.email,
-            data_alumni.nowa,
-            data_alumni.notelp,
-            data_alumni.alamat,
-            data_alumni.jabatan,
-            data_alumni.instansi,
-            data_alumni.occupation_id,
+            MAX(data_alumni.nama) as nama,
+            MAX(data_alumni.email) as email,
+            MAX(data_alumni.nowa) as nowa,
+            MAX(data_alumni.notelp) as notelp,
+            MAX(data_alumni.alamat) as alamat,
+            MAX(data_alumni.jabatan) as jabatan,
+            MAX(data_alumni.instansi) as instansi,
+            MAX(data_alumni.occupation_id) as occupation_id,
 
-            propinsi.nama AS propinsi,
-            occupations.name AS occupation'
+            MAX(propinsi.nama) AS propinsi,
+            MAX(occupations.name) AS occupation'
             )
             ->join('akademik', 'data_alumni.id = akademik.idorg', 'left')
             ->join('occupations', 'data_alumni.occupation_id = occupations.id', 'left')
@@ -178,26 +178,26 @@ class AlumniModel extends Model
             ->select(
                 '
             data_alumni.id,
-            data_alumni.nama,
-            data_alumni.email,
-            data_alumni.nowa,
-            data_alumni.notelp,
-            data_alumni.alamat,
-            data_alumni.prop_id,
-            data_alumni.pengguna_id,
-            data_alumni.jabatan,
-            data_alumni.instansi,
-            data_alumni.occupation_id,
-            data_alumni.photo,
+            MAX(data_alumni.nama) as nama,
+            MAX(data_alumni.email) as email,
+            MAX(data_alumni.nowa) as nowa,
+            MAX(data_alumni.notelp) as notelp,
+            MAX(data_alumni.alamat) as alamat,
+            MAX(data_alumni.prop_id) as prop_id,
+            MAX(data_alumni.pengguna_id) as pengguna_id,
+            MAX(data_alumni.jabatan) as jabatan,
+            MAX(data_alumni.instansi) as instansi,
+            MAX(data_alumni.occupation_id) as occupation_id,
+            MAX(data_alumni.photo) as photo,
 
-            akademik.jenjang,
-            akademik.universitas,
-            akademik.departemen,
-            akademik.tmasuk,
-            akademik.tlulus,
-            propinsi.id AS propinsi_id,
-            propinsi.nama AS propinsi,
-            occupations.name AS occupation'
+            MAX(akademik.jenjang) as jenjang,
+            MAX(akademik.universitas) as universitas,
+            MAX(akademik.departemen) as departemen,
+            MAX(akademik.tmasuk) as tmasuk,
+            MAX(akademik.tlulus) as tlulus,
+            MAX(propinsi.id) AS propinsi_id,
+            MAX(propinsi.nama) AS propinsi,
+            MAX(occupations.name) AS occupation'
             )
             ->join('akademik', 'data_alumni.id = akademik.idorg', '')
             ->join('occupations', 'data_alumni.occupation_id = occupations.id', '')
