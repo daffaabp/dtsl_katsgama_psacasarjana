@@ -45,6 +45,12 @@
 		}
 	</script>
 	<!--end::Theme mode setup on page load-->
+
+	<!-- Define site_url for JavaScript -->
+	<script>
+		var site_url = '<?php echo site_url(); ?>';
+	</script>
+
 	<!--begin::Main-->
 	<!--begin::Root-->
 	<div class="d-flex flex-column flex-root">
