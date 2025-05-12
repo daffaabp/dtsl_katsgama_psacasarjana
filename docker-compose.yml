@@ -1,32 +1,33 @@
 version: '3'
 services:
 
-  # PHP Service
+  # FPM Service
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: pasca-sarjana-php
-    container_name: pasca-sarjana-app
+    image: hub.ugm.id/dtsl-katsgama/dtsl_katsgama_pascasarjana:latest
     restart: unless-stopped
     tty: true
-    environment:
-      SERVICE_NAME: app
-      SERVICE_TAGS: dev
-      PHP_FPM_LISTEN: 9000
-      PHP_FPM_MAX_CHILDREN: 50
-      PHP_FPM_START_SERVERS: 5
-      PHP_FPM_MIN_SPARE_SERVERS: 5
-      PHP_FPM_MAX_SPARE_SERVERS: 35
+    env_file:
+      - stack.env    
     working_dir: /var/www
     volumes:
-      - ./:/var/www
-      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ${MOUNTPOINT}/${KATSGAMA}/docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ${ENVPOINT}/env-pasca:/var/www/.env
+      - writable:/var/www/writable
+      - logstore:/var/www/writable/logs
+      - logstore:/var/log/php
     networks:
       - app-network
     depends_on:
-      db:
-        condition: service_healthy
+       db:
+         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "php-fpm -t || exit 1"]
       interval: 10s
@@ -35,41 +36,57 @@ services:
 
   # Nginx Service
   webserver:
-    image: nginx:1.24-alpine
-    container_name: pasca-sarjana-nginx
+    image: hub.ugm.id/proxy/nginx:1.24-alpine
     restart: unless-stopped
     tty: true
+    env_file:
+      - stack.env    
     ports:
-      - "80:80"
+      - 91:80
     volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - docroot:/var/www
+      - ${MOUNTPOINT}/${KATSGAMA}/docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - writable:/var/www/writable
+      - logstore:/var/www/writeable/logs
+      - logstore:/var/log/nginx
     networks:
       - app-network
     depends_on:
       - app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+
 
   # MySQL Service
   db:
-    image: mysql:8.0.36
-    container_name: pasca-sarjana-db
+    image: hub.ugm.id/proxy/mysql:8.0.36
     restart: unless-stopped
     tty: true
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_DATABASE: katsgamaonline_pascasarjana
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_ROOT_HOST: '%'
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
+    env_file:
+      - stack.env    
     volumes:
       - dbdata:/var/lib/mysql/
-      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+      - ${MOUNTPOINT}/${KATSGAMA}/docker/mysql/my.cnf:/etc/mysql/my.cnf
+      - logstore:/var/log
     networks:
       - app-network
     security_opt:
       - seccomp:unconfined
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     command: >
       --default-authentication-plugin=mysql_native_password
       --sql-mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
@@ -78,6 +95,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  pma:
+    image: hub.ugm.id/proxy/phpmyadmin:5.0.4
+    restart: no
+    env_file:
+      - stack.env
+    ports:
+      - "5823:80"
+    networks:
+      - app-network
+    depends_on:
+      - db
+
 
 # Docker Networks
 networks:
@@ -88,3 +118,25 @@ networks:
 volumes:
   dbdata:
     driver: local 
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DBPOINT}
+  docroot:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MOUNTPOINT}/${KATSGAMA}
+  logstore:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MOUNTPOINT}/gardener/log/dev/pasca
+  writable:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MOUNTPOINT}/writable
