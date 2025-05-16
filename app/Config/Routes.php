@@ -36,7 +36,6 @@ $routes->set404Override();
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 
-
 // Auth
 $routes->get('/', 'Auth::login');
 $routes->get('/login', 'Auth::login');
@@ -45,15 +44,12 @@ $routes->get('/logout', 'Auth::logout');
 $routes->get('/forgot', 'Auth::forgot_password');
 $routes->post('/forgot', 'Auth::forgot_password_post');
 
-
-
 // Public Routes
 $routes->group("", ["filter" => "islogged"], function ($routes) {
     $routes->get('/alumni', 'Alumni::index');
     $routes->get('/alumni/detail/(:num)', 'Alumni::detail/$1');
     $routes->get('/alumni/info/(:num)', 'Alumni::info/$1');
 });
-
 
 // Program Sarjana
 $routes->group("", ["filter" => "adminangkatan"], function ($routes) {
@@ -89,8 +85,6 @@ $routes->group("", ["filter" => "adminangkatan"], function ($routes) {
     $routes->get('/export', 'ExportData::excel');
 });
 
-
-
 // User Menu
 $routes->group("", ["filter" => "islogged"], function ($routes) {
     $routes->get('/profile', 'User::profile');
@@ -98,7 +92,6 @@ $routes->group("", ["filter" => "islogged"], function ($routes) {
     $routes->get('/change_password', 'ChangePassword::index');
     $routes->post('/change_password', 'ChangePassword::edit_post');
 });
-
 
 // Master Propinsi
 $routes->group("", ["filter" => "superadmin"], function ($routes) {
@@ -140,7 +133,6 @@ $routes->group("", ["filter" => "superadmin"], function ($routes) {
     $routes->get('/role/delete/(:num)', 'Role::delete/$1');
 });
 
-
 // Master Angkatan
 $routes->group("", ["filter" => "superadmin"], function ($routes) {
     $routes->get('/angkatan', 'Angkatan::index');
@@ -151,28 +143,34 @@ $routes->group("", ["filter" => "superadmin"], function ($routes) {
     $routes->get('/angkatan/delete/(:num)', 'Angkatan::delete/$1');
 });
 
-
 // Android API
-$routes->get('/api/getAlumni', 'Api::getAlumni');
+$routes->get('/api/alumni', 'Api::getAlumni');
+$routes->get('/api/alumni/(:num)', 'Api::getAlumniById/$1');
+$routes->get('/api/filters', 'Api::getFilters');
+$routes->get('/api/profile/(:num)', 'Api::getAlumniByUserId/$1');
+$routes->post('/api/profile/(:num)', 'Api::editProfile/$1');
 
+$routes->post('/api/signin', 'Api::signin');
+$routes->post('/api/password', 'Api::changePassword');
+$routes->post('/api/forgot', 'Api::forgotPassword');
 
-// $routes->get('/builder/mapping_user_propinsi', 'Builder::mapping_user_propinsi');
-// $routes->get('/builder/create_propinsi', 'Builder::create_propinsi');
-// $routes->get('/builder/reset_password', 'Builder::reset_password');
+// Android API Site
+$routes->get('/api/news', 'Site::getNews');
+$routes->get('/api/news/(:num)', 'Site::getNewsById/$1');
 
-/*
- * --------------------------------------------------------------------
- * Additional Routing
- * --------------------------------------------------------------------
- *
- * There will often be times that you need additional routing and you
- * need it to be able to override any defaults in this file. Environment
- * based routes is one such time. require() additional route files here
- * to make that happen.
- *
- * You will have access to the $routes object within that file without
- * needing to reload it.
- */
+$routes->get('/api/lowongan', 'Site::getLowonganKerja');
+$routes->get('/api/lowongan/(:num)', 'Site::getLowonganKerjaById/$1');
+
+$routes->get('/api/advertisement', 'Site::getAdvertisement');
+$routes->get('/api/advertisement/(:num)', 'Site::getAdvertisementById/$1');
+
+$routes->get('/api/agenda', 'Site::getAgenda');
+$routes->get('/api/agenda/(:num)', 'Site::getAgendaById/$1');
+
+$routes->get('/api/pengurus', 'Site::getPengurus');
+
+$routes->post('/api/avatar/(:num)', 'ApiService::editAvatar/$1');
+
 if (is_file(APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php')) {
     require APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php';
 }

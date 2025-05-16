@@ -271,4 +271,67 @@ class AlumniModel extends Model
 
         return $this;
     }
+
+    public function data_alumni($filter)
+    {
+        $this
+            ->table('data_alumni')
+            ->select('
+                data_alumni.id,
+                MAX(data_alumni.nama) as nama,
+                MAX(data_alumni.email) as email,
+                MAX(data_alumni.nowa) as nowa,
+                MAX(data_alumni.notelp) as notelp,
+                MAX(data_alumni.alamat) as alamat,
+                MAX(data_alumni.prop_id) as prop_id,
+                MAX(data_alumni.jabatan) as jabatan,
+                MAX(data_alumni.instansi) as instansi,
+                MAX(data_alumni.occupation_id) as occupation_id,
+                MAX(data_alumni.photo) as photo,
+                MAX(akademik.jenjang) as jenjang,
+                MAX(akademik.universitas) as universitas,
+                MAX(akademik.departemen) as departemen,
+                MAX(akademik.tmasuk) as tmasuk,
+                MAX(akademik.tlulus) as tlulus,
+                MAX(propinsi.nama) AS propinsi,
+                MAX(occupations.name) AS occupation
+            ')
+            ->join('akademik', 'data_alumni.id = akademik.idorg', 'left')
+            ->join('occupations', 'data_alumni.occupation_id = occupations.id', 'left')
+            ->join('propinsi', 'data_alumni.prop_id = propinsi.id', 'left');
+
+        // Filter Query
+        if (isset($filter['q']) && !empty($filter['q'])) {
+            $this->like('data_alumni.nama', $filter['q'], 'both');
+        }
+
+        if (isset($filter['tmasuk']) && !empty($filter['tmasuk'])) {
+            $this->where('akademik.tmasuk', $filter['tmasuk']);
+        }
+
+        if (isset($filter['occupation']) && !empty($filter['occupation'])) {
+            $this->where('occupations.id', $filter['occupation']);
+        }
+
+        if (isset($filter['province']) && !empty($filter['province'])) {
+            $this->where('data_alumni.prop_id', $filter['province']);
+        }
+
+        if (isset($filter['jabatan']) && !empty($filter['jabatan'])) {
+            $this->like('data_alumni.jabatan', $filter['jabatan'], 'both');
+        }
+
+        if (isset($filter['instansi']) && !empty($filter['instansi'])) {
+            $this->like('data_alumni.instansi', $filter['instansi'], 'both');
+        }
+
+        if (isset($filter['prodi']) && !empty($filter['prodi'])) {
+            $db = db_connect();
+            $prodi = $db->table('prodi')->limit(1)->get()->getRowArray();
+            $this->like('akademik.prodi', $prodi['nprodi'], 'both');
+        }
+
+        $this->groupBy('data_alumni.id');
+        return $this;
+    }
 }
