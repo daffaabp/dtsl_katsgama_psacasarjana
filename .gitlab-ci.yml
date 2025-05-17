@@ -111,11 +111,12 @@ call_portainer_dev:
     - apk add --no-cache curl
     - echo "Debug - PORTAINER_HOOK value: ${PORTAINER_HOOK}"
     - |
-      if [[ -z "${PORTAINER_HOOK}" ]]; then
+      if [[ -z "$PORTAINER_HOOK" ]]; then
         echo "Error: PORTAINER_HOOK is empty"
         exit 1
       fi
-    - 'curl -X POST "${PORTAINER_HOOK}"'
+    - echo "Triggering Portainer webhook..."
+    - curl -v -X POST "$PORTAINER_HOOK" || echo "Failed to trigger webhook"
 
 call_portainer_prod:
   image: hub.ugm.id/proxy/alpine:3.17
