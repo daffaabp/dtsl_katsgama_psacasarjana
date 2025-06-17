@@ -1,6 +1,88 @@
-.env*
-katsgamaonline_pascasarjana.sql
-catatan.txt
-report.txt
-writable*
+.DS_Store
+application/cache/*
+!application/cache/index.html
+
+application/logs/*
+!application/logs/index.html
+!application/logs/.htaccess
+
+!application/*/.htaccess
+
+composer.lock
+tests/mocks/database/ci_test.sqlite
+
+user_guide_src/build/*
+user_guide_src/cilexer/build/*
+user_guide_src/cilexer/dist/*
+user_guide_src/cilexer/pycilexer.egg-info/*
+
+# IDE Files
+#-------------------------
+/nbproject/
+.idea/*
+
+## Sublime Text cache files
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+/tests/tests/
+/tests/results/
+
+# Configuration files
+application/config/development
+application/config/testing
+application/config/production
+
+# Database files
+*.sql
+*.sqlite
+
+# Environment files
+.env
+.env.*
+
+# Composer dependencies
+/vendor/
+
+# Temporary files
 *.log
+*.tmp
+*.temp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Except these directories
+!writable/cache/
+!writable/debugbar/
+!writable/logs/
+!writable/session/
+!writable/uploads/
+
+# Except these files
+!writable/.htaccess
+!writable/*/index.html
+!writable/*/.gitkeep
+
+# But still ignore everything else in those directories
+writable/cache/*
+!writable/cache/index.html
+
+writable/debugbar/*
+!writable/debugbar/.gitkeep
+
+writable/logs/*
+!writable/logs/index.html
+
+writable/session/*
+!writable/session/index.html
+
+writable/uploads/*
+!writable/uploads/index.html
+
+# cursorrules
+.cursorrules
+docs/*
