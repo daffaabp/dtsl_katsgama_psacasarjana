@@ -86,3 +86,5 @@ writable/uploads/*
 # cursorrules
 .cursorrules
 docs/*
+
+vendor/*
