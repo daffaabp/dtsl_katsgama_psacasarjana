@@ -279,21 +279,35 @@ class View implements RendererInterface
         $start = microtime(true);
         $saveData ??= $this->saveData;
         $this->prepareTemplateData($saveData);
-
+    
         $output = (function (string $view): string {
             extract($this->tempData);
+    
+            // Buat file sementara
+            $tmpFile = tempnam(sys_get_temp_dir(), 'view_');
+            file_put_contents($tmpFile, $view);
+    
             ob_start();
-            eval('?>' . $view);
-
-            return ob_get_clean() ?: '';
+            try {
+                include $tmpFile;
+            } catch (\Throwable $e) {
+                ob_end_clean();
+                unlink($tmpFile);
+                throw new \RuntimeException("Error in template: " . $e->getMessage(), 0, $e);
+            }
+    
+            $rendered = ob_get_clean();
+            unlink($tmpFile);
+    
+            return $rendered ?: '';
         })($view);
-
+    
         $this->logPerformance($start, microtime(true), $this->excerpt($view));
         $this->tempData = null;
-
+    
         return $output;
     }
-
+    
     /**
      * Extract first bit of a long string and add ellipsis
      */

@@ -645,11 +645,47 @@ var ciDebugBar = {
             }
             else
             {
-                row.innerHTML = '<div>' + row.innerText + '</div>'
-                    + '<form data-debugbar-route-tpl="' + ciDebugBar.trimSlash(row.innerText.replace(patt, '?')) + '">'
-                    + row.innerText.replace(patt, '<input type="text" placeholder="$1">')
-                    + '<input type="submit" value="Go" style="margin-left: 4px;">'
-                    + '</form>';
+                // row.innerHTML = '<div>' + row.innerText + '</div>'
+                //     + '<form data-debugbar-route-tpl="' + ciDebugBar.trimSlash(row.innerText.replace(patt, '?')) + '">'
+                //     + row.innerText.replace(patt, '<input type="text" placeholder="$1">')
+                //     + '<input type="submit" value="Go" style="margin-left: 4px;">'
+                //     + '</form>';
+
+                const div = document.createElement('div');
+                div.textContent = row.innerText;
+                
+                const form = document.createElement('form');
+                form.setAttribute('data-debugbar-route-tpl', ciDebugBar.trimSlash(row.innerText.replace(patt, '?')));
+                
+                // Gantikan `row.innerText.replace(...)` dengan potongan DOM
+                const routeText = row.innerText;
+                const match = patt.exec(routeText);
+                
+                if (match) {
+                  const beforeInput = document.createTextNode(routeText.substring(0, match.index));
+                  const input = document.createElement('input');
+                  input.type = 'text';
+                  input.placeholder = match[1] || '';
+                
+                  const afterInput = document.createTextNode(routeText.substring(match.index + match[0].length));
+                
+                  form.appendChild(beforeInput);
+                  form.appendChild(input);
+                  form.appendChild(afterInput);
+                }
+                
+                const submit = document.createElement('input');
+                submit.type = 'submit';
+                submit.value = 'Go';
+                submit.style.marginLeft = '4px';
+                
+                form.appendChild(submit);
+                
+                // Kosongkan konten lama dan masukkan yang baru
+                row.textContent = '';
+                row.appendChild(div);
+                row.appendChild(form);
+                
             }
         }
 

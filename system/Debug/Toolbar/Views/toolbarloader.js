@@ -28,22 +28,23 @@ function loadDoc(time) {
             // get the first style block, copy contents to dynamic_style, then remove here
             let start = responseText.indexOf('>', responseText.indexOf('<style')) + 1;
             let end = responseText.indexOf('</style>', start);
-            dynamicStyle.innerHTML = responseText.substr(start, end - start);
+            // dynamicStyle.innerHTML = responseText.substr(start, end - start);
+            dynamicStyle.textContent = responseText.substr(start, end - start);
             responseText = responseText.substr(end + 8);
 
             // get the first script after the first style, copy contents to dynamic_script, then remove here
             start = responseText.indexOf('>', responseText.indexOf('<script')) + 1;
             end = responseText.indexOf('\<\/script>', start);
-            dynamicScript.innerHTML = responseText.substr(start, end - start);
+            dynamicScript.textContent = responseText.substr(start, end - start);
             responseText = responseText.substr(end + 9);
 
             // check for last style block, append contents to dynamic_style, then remove here
             start = responseText.indexOf('>', responseText.indexOf('<style')) + 1;
             end = responseText.indexOf('</style>', start);
-            dynamicStyle.innerHTML += responseText.substr(start, end - start);
+            dynamicStyle.textContent += responseText.substr(start, end - start);
             responseText = responseText.substr(0, start - 8);
 
-            toolbar.innerHTML = responseText;
+            toolbar.textContent = responseText;
 
             if (typeof ciDebugBar === 'object') {
                 ciDebugBar.init();
@@ -74,7 +75,16 @@ function newXHR() {
                     let h2 = document.querySelector('#ci-history > h2');
 
                     if (h2) {
-                        h2.innerHTML = 'History <small>You have new debug data.</small> <button onclick="loadDoc(' + debugbarTime + ')">Update</button>';
+                        // h2.innerHTML = 'History <small>You have new debug data.</small> <button onclick="loadDoc(' + debugbarTime + ')">Update</button>';
+                        h2.textContent = 'History ';
+                        const small = document.createElement('small');
+                        small.textContent = 'You have new debug data.';
+                        h2.appendChild(small);
+                        
+                        const button = document.createElement('button');
+                        button.textContent = 'Update';
+                        button.addEventListener('click', () => loadDoc(debugbarTime));
+                        h2.appendChild(button);
                         document.querySelector('a[data-tab="ci-history"] > span > .badge').className += ' active';
                     }
                 }

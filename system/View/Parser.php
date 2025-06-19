@@ -412,64 +412,75 @@ class Parser extends View
      *  - elseif
      *  - else
      */
-    protected function parseConditionals(string $template): string
-    {
-        $leftDelimiter  = preg_quote($this->leftConditionalDelimiter, '/');
-        $rightDelimiter = preg_quote($this->rightConditionalDelimiter, '/');
 
-        $pattern = '/'
-            . $leftDelimiter
-            . '\s*(if|elseif)\s*((?:\()?(.*?)(?:\))?)\s*'
-            . $rightDelimiter
-            . '/ms';
-
-        /*
-         * For each match:
-         * [0] = raw match `{if var}`
-         * [1] = conditional `if`
-         * [2] = condition `do === true`
-         * [3] = same as [2]
-         */
-        preg_match_all($pattern, $template, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            // Build the string to replace the `if` statement with.
-            $condition = $match[2];
-
-            $statement = $match[1] === 'elseif' ? '<?php elseif (' . $condition . '): ?>' : '<?php if (' . $condition . '): ?>';
-            $template  = str_replace($match[0], $statement, $template);
-        }
-
-        $template = preg_replace(
-            '/' . $leftDelimiter . '\s*else\s*' . $rightDelimiter . '/ms',
-            '<?php else: ?>',
-            $template
-        );
-        $template = preg_replace(
-            '/' . $leftDelimiter . '\s*endif\s*' . $rightDelimiter . '/ms',
-            '<?php endif; ?>',
-            $template
-        );
-
-        // Parse the PHP itself, or insert an error so they can debug
-        ob_start();
-
-        if ($this->tempData === null) {
-            $this->tempData = $this->data;
-        }
-
-        extract($this->tempData);
-
-        try {
-            eval('?>' . $template . '<?php ');
-        } catch (ParseError $e) {
-            ob_end_clean();
-
-            throw ViewException::forTagSyntaxError(str_replace(['?>', '<?php '], '', $template));
-        }
-
-        return ob_get_clean();
-    }
+     protected function parseConditionals(string $template): string
+     {
+         $leftDelimiter  = preg_quote($this->leftConditionalDelimiter, '/');
+         $rightDelimiter = preg_quote($this->rightConditionalDelimiter, '/');
+     
+         $pattern = '/'
+             . $leftDelimiter
+             . '\s*(if|elseif)\s*((?:\()?(.*?)(?:\))?)\s*'
+             . $rightDelimiter
+             . '/ms';
+     
+         /*
+          * For each match:
+          * [0] = raw match `{if var}`
+          * [1] = conditional `if`
+          * [2] = condition `do === true`
+          * [3] = same as [2]
+          */
+         preg_match_all($pattern, $template, $matches, PREG_SET_ORDER);
+     
+         foreach ($matches as $match) {
+             $condition = $match[2];
+     
+             $statement = $match[1] === 'elseif'
+                 ? '<?php elseif (' . $condition . '): ?>'
+                 : '<?php if (' . $condition . '): ?>';
+     
+             $template = str_replace($match[0], $statement, $template);
+         }
+     
+         // Gantikan else dan endif
+         $template = preg_replace(
+             '/' . $leftDelimiter . '\s*else\s*' . $rightDelimiter . '/ms',
+             '<?php else: ?>',
+             $template
+         );
+         $template = preg_replace(
+             '/' . $leftDelimiter . '\s*endif\s*' . $rightDelimiter . '/ms',
+             '<?php endif; ?>',
+             $template
+         );
+     
+         // Simulasi proses rendering dengan include file sementara
+         ob_start();
+     
+         if ($this->tempData === null) {
+             $this->tempData = $this->data;
+         }
+     
+         extract($this->tempData);
+     
+         $tmpFile = tempnam(sys_get_temp_dir(), 'view_');
+         file_put_contents($tmpFile, $template);
+     
+         try {
+             include $tmpFile;
+         } catch (\Throwable $e) {
+             ob_end_clean();
+             unlink($tmpFile);
+             throw ViewException::forTagSyntaxError($e->getMessage());
+         }
+     
+         $output = ob_get_clean();
+         unlink($tmpFile);
+     
+         return $output;
+     }
+     
 
     /**
      * Over-ride the substitution field delimiters.

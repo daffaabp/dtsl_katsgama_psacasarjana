@@ -34,7 +34,7 @@ class Database extends Config
         'DSN'      => '',
         'hostname' => 'localhost',
         'username' => 'root',
-        'password' => 'root123',
+        'password' => '',
         'database' => 'katsgamaonline_pascasarjana',
         'DBDriver' => 'MySQLi',
         'DBPrefix' => '',

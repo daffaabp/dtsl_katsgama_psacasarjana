@@ -184,38 +184,110 @@ class ImageMagickHandler extends BaseHandler
      *
      * @return array Lines of output from shell command
      */
+    // protected function process(string $action, int $quality = 100): array
+    // {
+    //     // Validasi path library
+    //     if (empty($this->config->libraryPath)) {
+    //         throw ImageException::forInvalidImageLibraryPath($this->config->libraryPath);
+    //     }
+    
+    //     // Cek dan lengkapi path binary jika belum berakhir dengan "convert"
+    //     if (!preg_match('/convert$/i', $this->config->libraryPath)) {
+    //         $this->config->libraryPath = rtrim($this->config->libraryPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'convert';
+    //     }
+    
+    //     // Escape command binary
+    //     $binary = escapeshellcmd($this->config->libraryPath);
+    
+    //     // Validasi action untuk mencegah perintah berbahaya
+    //     $allowedActions = ['-version', 'some-action', 'another-action']; // Tambahkan action yang diperbolehkan
+    //     if (!in_array($action, $allowedActions, true)) {
+    //         throw new \InvalidArgumentException("Action '{$action}' is not allowed.");
+    //     }
+    
+    //     // Bangun command secara aman
+    //     if ($action === '-version') {
+    //         $cmd = "{$binary} {$action}";
+    //     } else {
+    //         $cmd = "{$binary} -quality " . (int)$quality . " " . escapeshellarg($action);
+    //     }
+    
+    //     $retval = 1;
+    //     $output = [];
+    
+    //     if (function_usable('exec')) {
+    //         @exec($cmd, $output, $retval);
+    //     } else {
+    //         throw new \RuntimeException('exec() is disabled on this server.');
+    //     }
+    
+    //     if ($retval > 0) {
+    //         throw ImageException::forImageProcessFailed();
+    //     }
+    
+    //     return $output;
+    // }
+    
     protected function process(string $action, int $quality = 100): array
     {
-        // Do we have a vaild library path?
+        // Validasi path library
         if (empty($this->config->libraryPath)) {
             throw ImageException::forInvalidImageLibraryPath($this->config->libraryPath);
         }
-
-        if ($action !== '-version') {
-            $this->supportedFormatCheck();
+    
+        // Pastikan path binary diakhiri dengan "convert"
+        if (!preg_match('/convert$/i', $this->config->libraryPath)) {
+            $this->config->libraryPath = rtrim($this->config->libraryPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'convert';
         }
-
-        if (! preg_match('/convert$/i', $this->config->libraryPath)) {
-            $this->config->libraryPath = rtrim($this->config->libraryPath, '/') . '/convert';
-        }
-
-        $cmd = $this->config->libraryPath;
-        $cmd .= $action === '-version' ? ' ' . $action : ' -quality ' . $quality . ' ' . $action;
-
-        $retval = 1;
+    
+        // Escape path binary
+        $binary = escapeshellcmd($this->config->libraryPath);
+    
+        // Susun command
+        $cmd = ($action === '-version')
+            ? "{$binary} {$action}"
+            : "{$binary} -quality " . (int) $quality . " {$action}";
+    
         $output = [];
-        // exec() might be disabled
-        if (function_usable('exec')) {
-            @exec($cmd, $output, $retval);
+        $retval = 1;
+    
+        if (!function_exists('proc_open')) {
+            throw new \RuntimeException('proc_open() is disabled on this server.');
         }
-
-        // Did it work?
+    
+        // Deskriptor: STDOUT dan STDERR ditangkap
+        $descriptors = [
+            1 => ['pipe', 'w'], // STDOUT
+            2 => ['pipe', 'w'], // STDERR
+        ];
+    
+        $process = proc_open($cmd, $descriptors, $pipes);
+    
+        if (!is_resource($process)) {
+            throw new \RuntimeException("Failed to run process: {$cmd}");
+        }
+    
+        $stdout = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+    
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+    
+        $retval = proc_close($process);
+    
+        // Gabungkan dan filter output
+        $output = array_filter(array_merge(
+            explode("\n", trim($stdout)),
+            explode("\n", trim($stderr))
+        ));
+    
         if ($retval > 0) {
             throw ImageException::forImageProcessFailed();
         }
-
+    
         return $output;
     }
+    
 
     /**
      * Saves any changes that have been made to file. If no new filename is

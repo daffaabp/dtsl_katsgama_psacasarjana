@@ -88,29 +88,32 @@ class Serve extends BaseCommand
      */
     public function run(array $params)
     {
-        // Collect any user-supplied options and apply them.
+        // Gunakan binary PHP dari opsi CLI atau fallback ke PHP bawaan sistem
         $php  = escapeshellarg(CLI::getOption('php') ?? PHP_BINARY);
+    
+        // Ambil host dan port dari CLI args atau fallback default
         $host = CLI::getOption('host') ?? 'localhost';
         $port = (int) (CLI::getOption('port') ?? 8080) + $this->portOffset;
-
-        // Get the party started.
+    
+        // Informasi kepada user bahwa server dijalankan
         CLI::write('CodeIgniter development server started on http://' . $host . ':' . $port, 'green');
         CLI::write('Press Control-C to stop.');
-
-        // Set the Front Controller path as Document Root.
+    
+        // Path ke direktori publik (biasanya public/)
         $docroot = escapeshellarg(FCPATH);
-
-        // Mimic Apache's mod_rewrite functionality with user settings.
+    
+        // Path ke file rewrite yang akan bertindak seperti mod_rewrite (index.php routing)
         $rewrite = escapeshellarg(__DIR__ . '/rewrite.php');
-
-        // Call PHP's built-in webserver, making sure to set our
-        // base path to the public folder, and to use the rewrite file
-        // to ensure our environment is set and it simulates basic mod_rewrite.
-        passthru($php . ' -S ' . $host . ':' . $port . ' -t ' . $docroot . ' ' . $rewrite, $status);
-
+    
+        // Bangun perintah untuk menjalankan server PHP bawaan
+        $command = "{$php} -S {$host}:{$port} -t {$docroot} {$rewrite}";
+    
+        // Jalankan perintah
+        passthru($command, $status);
+    
+        // Jika gagal dan masih punya percobaan tersisa, coba port berikutnya
         if ($status && $this->portOffset < $this->tries) {
             $this->portOffset++;
-
             $this->run($params);
         }
     }
