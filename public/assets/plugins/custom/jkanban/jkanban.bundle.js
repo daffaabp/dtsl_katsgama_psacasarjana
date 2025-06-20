@@ -181,8 +181,9 @@
                     }
                 
                     // Set innerHTML dengan string yang sudah disanitasi
-                    item.innerHTML = sanitize(n.title || "");
-                
+                    // item.innerHTML = sanitize(n.title || "");
+                    item.textContent = n.title || "";
+
                     // Simpan function event (opsional, sesuai implementasi sistem)
                     item.clickfn = n.click;
                     item.dragfn = n.drag;
@@ -258,8 +259,12 @@
                                 return temp.innerHTML;
                             }
                         
-                            v.innerHTML = '<div class="kanban-title-board">' + sanitize(p.title || "") + '</div>';
-                        
+                            const titleDiv = document.createElement("div");
+                            titleDiv.className = "kanban-title-board";
+                            titleDiv.textContent = p.title || "";
+
+                            v.innerHTML = ""; // kosongkan dulu jika perlu
+                            v.appendChild(titleDiv);                        
                             // BODY
                             var g = document.createElement("main");
                             g.classList.add("kanban-drag");
@@ -283,7 +288,8 @@
                                     w.class.forEach(cls => E.classList.add(cls));
                                 }
                         
-                                E.innerHTML = sanitize(w.title || "");
+                                // E.innerHTML = sanitize(w.title || "");
+                                E.textContent = w.title || "";
                                 E.clickfn = w.click;
                                 E.dragfn = w.drag;
                                 E.dragendfn = w.dragend;
@@ -331,7 +337,27 @@
                     if (e !== this.getParentBoardID(t)) return this.removeElement(t), this.addElement(e, n)
                 }, this.replaceElement = function(t, n) {
                     var o = t;
-                    return "string" == typeof o && (o = e.element.querySelector('[data-eid="' + t + '"]')), o.innerHTML = n.title, o.clickfn = n.click, o.dragfn = n.drag, o.dragendfn = n.dragend, o.dropfn = n.drop, c(o, n), e
+                
+                    // Jika t adalah string selector, cari elemen DOM
+                    if (typeof o === "string") {
+                        o = e.element.querySelector('[data-eid="' + t + '"]');
+                    }
+                
+                    // Hapus semua child & sisipkan teks aman
+                    if (o) {
+                        o.replaceChildren(document.createTextNode(n.title || ""));
+                
+                        // Simpan fungsi-fungsi untuk interaksi
+                        o.clickfn    = n.click;
+                        o.dragfn     = n.drag;
+                        o.dragendfn  = n.dragend;
+                        o.dropfn     = n.drop;
+                
+                        // Jalankan fungsi konfigurasi lanjutan
+                        c(o, n);
+                    }
+                
+                    return e;
                 }, this.findElement = function(t) {
                     return e.element.querySelector('[data-eid="' + t + '"]')
                 }, this.getBoardElements = function(t) {

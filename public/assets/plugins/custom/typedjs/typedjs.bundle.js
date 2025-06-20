@@ -198,7 +198,17 @@
                 }, {
                     key: "insertCursor",
                     value: function() {
-                        this.showCursor && (this.cursor || (this.cursor = document.createElement("span"), this.cursor.className = "typed-cursor", this.cursor.setAttribute("aria-hidden", !0), this.cursor.innerHTML = this.cursorChar, this.el.parentNode && this.el.parentNode.insertBefore(this.cursor, this.el.nextSibling)))
+                        if (this.showCursor) {
+                            if (!this.cursor) {
+                                this.cursor = document.createElement("span");
+                                this.cursor.className = "typed-cursor";
+                                this.cursor.setAttribute("aria-hidden", "true");
+                                this.cursor.textContent = this.cursorChar || "|"; // aman
+                                if (this.el.parentNode) {
+                                    this.el.parentNode.insertBefore(this.cursor, this.el.nextSibling);
+                                }
+                            }
+                        }
                     }
                 }]), t
             }();

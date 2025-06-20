@@ -14,7 +14,7 @@ var KTAppEcommerceSalesSaveOrder = (function () {
         dateFormat: "Y-m-d"
       });
 
-      // Safe template function to prevent XSS
+      // Safe country template
       const countryTemplate = function (data) {
         if (!data.id) return data.text;
 
@@ -33,7 +33,7 @@ var KTAppEcommerceSalesSaveOrder = (function () {
         return $(span);
       };
 
-      // Initialize select2 with safe template
+      // Select2 for billing/shipping country
       $("#kt_ecommerce_edit_order_billing_country").select2({
         placeholder: "Select a country",
         minimumResultsForSearch: Infinity,
@@ -48,7 +48,7 @@ var KTAppEcommerceSalesSaveOrder = (function () {
         templateResult: countryTemplate
       });
 
-      // Initialize DataTable
+      // DataTable
       tableElement = document.querySelector("#kt_ecommerce_edit_order_product_table");
       dataTable = $(tableElement).DataTable({
         order: [],
@@ -59,23 +59,20 @@ var KTAppEcommerceSalesSaveOrder = (function () {
         columnDefs: [{ orderable: false, targets: 0 }]
       });
 
-      // Search filter
-      document.querySelector('[data-kt-ecommerce-edit-order-filter="search"]')
+      // Search
+      document
+        .querySelector('[data-kt-ecommerce-edit-order-filter="search"]')
         .addEventListener("keyup", function (e) {
           dataTable.search(e.target.value).draw();
         });
 
-      // Toggle shipping form
+      // Toggle shipping address
       const shippingForm = document.getElementById("kt_ecommerce_edit_order_shipping_form");
       document.getElementById("same_as_billing").addEventListener("change", function (e) {
-        if (e.target.checked) {
-          shippingForm.classList.add("d-none");
-        } else {
-          shippingForm.classList.remove("d-none");
-        }
+        shippingForm.classList.toggle("d-none", e.target.checked);
       });
 
-      // Handle product selection
+      // Product selection
       const checkboxes = tableElement.querySelectorAll('[type="checkbox"]');
       const selectedProductsContainer = document.getElementById("kt_ecommerce_edit_order_selected_products");
       const totalPriceDisplay = document.getElementById("kt_ecommerce_edit_order_total_price");
@@ -83,15 +80,16 @@ var KTAppEcommerceSalesSaveOrder = (function () {
       checkboxes.forEach((checkbox) => {
         checkbox.addEventListener("change", (e) => {
           const row = checkbox.closest("tr");
-          const product = row.querySelector('[data-kt-ecommerce-edit-order-filter="product"]').cloneNode(true);
+          const productOriginal = row.querySelector('[data-kt-ecommerce-edit-order-filter="product"]');
+          const productClone = productOriginal.cloneNode(true);
+          const productId = productClone.getAttribute("data-kt-ecommerce-edit-order-id");
+
+          // Layout fixes
+          productClone.classList.remove("d-flex", "align-items-center");
+          productClone.classList.add("col", "my-2");
+
+          // Create wrapper
           const wrapper = document.createElement("div");
-          const content = product.innerHTML;
-          const productId = product.getAttribute("data-kt-ecommerce-edit-order-id");
-
-          product.classList.remove("d-flex", "align-items-center");
-          product.classList.add("col", "my-2");
-          product.innerHTML = "";
-
           wrapper.classList.add(
             "d-flex",
             "align-items-center",
@@ -101,15 +99,18 @@ var KTAppEcommerceSalesSaveOrder = (function () {
             "p-3",
             "bg-body"
           );
-          wrapper.innerHTML = content;
-          product.appendChild(wrapper);
+
+          // Move children to wrapper safely
+          while (productClone.firstChild) {
+            wrapper.appendChild(productClone.firstChild);
+          }
+
+          productClone.appendChild(wrapper);
 
           if (e.target.checked) {
-            selectedProductsContainer.appendChild(product);
+            selectedProductsContainer.appendChild(productClone);
           } else {
-            const existing = selectedProductsContainer.querySelector(
-              `[data-kt-ecommerce-edit-order-id="${productId}"]`
-            );
+            const existing = selectedProductsContainer.querySelector(`[data-kt-ecommerce-edit-order-id="${productId}"]`);
             if (existing) selectedProductsContainer.removeChild(existing);
           }
 
@@ -143,7 +144,7 @@ var KTAppEcommerceSalesSaveOrder = (function () {
         totalPriceDisplay.innerText = total.toFixed(2);
       }
 
-      // Form validation
+      // Form Validation
       let validator;
       const form = document.getElementById("kt_ecommerce_edit_order_form");
       const submitBtn = document.getElementById("kt_ecommerce_edit_order_submit");
@@ -242,6 +243,7 @@ var KTAppEcommerceSalesSaveOrder = (function () {
   };
 })();
 
+// Init on DOM ready
 KTUtil.onDOMContentLoaded(function () {
   KTAppEcommerceSalesSaveOrder.init();
 });
